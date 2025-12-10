@@ -1,19 +1,38 @@
 const express = require('express');
-const cors = require('cors');
 require('dotenv').config();
 const connectDB = require('./config/connectDB');
 const userRoutes = require('./routes/users.route');
 
 const app = express();
 
-// Middleware
 app.use(express.json());
 
-// CORS
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-}));
+// ⭐ FIXED CORS (manual and 100% reliable)
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://turboo-fit-front.onrender.com",
+  process.env.FRONTEND_URL
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  // Handle preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 // Connect DB
 connectDB();
